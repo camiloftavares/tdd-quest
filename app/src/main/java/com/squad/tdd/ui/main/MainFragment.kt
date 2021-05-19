@@ -9,6 +9,7 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.squad.tdd.R
 import com.squad.tdd.helpers.SignInHelper
+import com.squad.tdd.helpers.SignInHelperImpl
 
 class MainFragment : Fragment() {
     companion object {
@@ -26,6 +27,7 @@ class MainFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        signInHelper = SignInHelperImpl()
         if (!signInHelper.userIsLogged()) {
             findNavController().navigate(MainFragmentDirections.actionRequireSignin())
         }
