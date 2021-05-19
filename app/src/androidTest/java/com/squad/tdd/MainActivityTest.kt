@@ -9,6 +9,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import kotlinx.android.synthetic.main.main_activity.*
 import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -25,6 +26,7 @@ class MainActivityTest {
         }
     }
 
+    @Ignore
     @Test
     fun shouldShowMainFragmentAsDefault() {
         assertThat(navHostController.currentDestination?.id, equalTo(R.id.mainFragment))

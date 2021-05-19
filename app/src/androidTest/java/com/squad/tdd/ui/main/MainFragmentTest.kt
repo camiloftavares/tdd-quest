@@ -1,42 +1,57 @@
 package com.squad.tdd.ui.main
 
 import androidx.fragment.app.testing.launchFragmentInContainer
+import androidx.navigation.NavController
 import androidx.navigation.Navigation
-import androidx.navigation.testing.TestNavHostController
-import androidx.test.core.app.ApplicationProvider
-import androidx.test.espresso.matcher.ViewMatchers
-import androidx.test.espresso.matcher.ViewMatchers.assertThat
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.squad.tdd.R
 import com.squad.tdd.helpers.SignInHelper
+import com.squad.tdd.ui.main.MainFragmentDirections.Companion.actionRequireSignin
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.android.synthetic.main.main_activity.*
-import org.hamcrest.CoreMatchers
-import org.hamcrest.CoreMatchers.equalTo
-import org.junit.Assert.*
-import org.junit.Ignore
+import io.mockk.verify
 import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class MainFragmentTest {
-    private val signInHelper = mockk<SignInHelper>()
-    private val navHostController = TestNavHostController(ApplicationProvider.getApplicationContext())
+    private val signInHelper = mockk<SignInHelper>(relaxed = true)
+    private val navHostController = mockk<NavController>(relaxed = true)
 
-    @Ignore
     @Test
     fun shouldGoToSignInFragmentIfUserIsNotLogged() {
         every { signInHelper.userIsLogged() } returns false
 
-        launchFragmentInContainer<MainFragment>().onFragment {
-            navHostController.setGraph(R.navigation.main_nav)
-            Navigation.setViewNavController(it.requireView(), navHostController)
-        }
+        launchFragment()
 
-        assertThat(
-            navHostController.currentDestination?.id, equalTo(R.id.signInFragment)
-        )
+        verify(exactly = 1) {
+            navHostController.navigate(actionRequireSignin())
+        }
+    }
+
+    @Test
+    fun shouldKeepOnMainFragmentIfUserIsLogged() {
+        every { signInHelper.userIsLogged() } returns true
+
+        launchFragment()
+
+        verify(exactly = 0) {
+            navHostController.navigate(actionRequireSignin())
+        }
+    }
+
+    private fun launchFragment() {
+        launchFragmentInContainer {
+            MainFragment().also { fragment ->
+                fragment.signInHelper = signInHelper
+                fragment.viewLifecycleOwnerLiveData.observeForever { viewLifeCycleOwner ->
+                    if (viewLifeCycleOwner != null) {
+                        navHostController.setGraph(R.navigation.main_nav)
+                        Navigation.setViewNavController(fragment.requireView(), navHostController)
+                    }
+                }
+            }
+        }
     }
 
 }
