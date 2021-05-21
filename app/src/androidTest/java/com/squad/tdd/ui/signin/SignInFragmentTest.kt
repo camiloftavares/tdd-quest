@@ -1,5 +1,6 @@
 package com.squad.tdd.ui.signin
 
+import android.app.Activity
 import androidx.fragment.app.testing.launchFragmentInContainer
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
@@ -13,8 +14,11 @@ import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.UiSelector
 import com.squad.tdd.R
 import com.squad.tdd.helpers.PermissionHelper
+import com.squad.tdd.helpers.PermissionHelperImpl
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.spyk
+import io.mockk.verify
 import org.junit.*
 import org.junit.runner.RunWith
 
@@ -22,7 +26,7 @@ import org.junit.runner.RunWith
 class SignInFragmentTest {
 
     private val navHostController = mockk<NavController>(relaxed = true)
-    private val permissionHelper = mockk<PermissionHelper>(relaxed = true)
+    private val permissionHelper = spyk(PermissionHelperImpl(mockk()))
     private lateinit var uiDevice: UiDevice
 
     @Before
@@ -49,7 +53,9 @@ class SignInFragmentTest {
     @Test
     fun shouldRequestPermissionWhenUserClickSignInWithoutPermissionGranted() {
         onView(withId(R.id.sign_in_btn)).perform(click())
+
         assertViewWithTextIsVisible(uiDevice, "ALLOW")
+//        verify { permissionHelper.requestLocationPermission() }
     }
 
     private fun assertViewWithTextIsVisible(uiDevice: UiDevice, text: String) {
@@ -61,7 +67,7 @@ class SignInFragmentTest {
     private fun launchFragment() {
         launchFragmentInContainer {
             SignInFragment().also { fragment ->
-                //fragment.permissionHelper = permissionHelper
+                fragment.permissionHelper = permissionHelper
                 fragment.viewLifecycleOwnerLiveData.observeForever { viewLifeCycleOwner ->
                     if (viewLifeCycleOwner != null) {
                         navHostController.setGraph(R.navigation.main_nav)
