@@ -7,23 +7,37 @@ import com.squad.tdd.ui.signin.data.UserInfo
 import com.squad.tdd.ui.signin.preferences.UserPreference
 import com.squad.tdd.ui.signin.repositories.GoogleRepository
 import com.squad.tdd.utils.AppLogger
-import com.squad.tdd.utils.onNext
+import com.squad.tdd.utils.onEach
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 
 class SignInViewModel(private val googleRepository: GoogleRepository,
                       private val userPreference: UserPreference,
                       private val logger: AppLogger) : ViewModel() {
 
     private val _userInfo = MutableLiveData<UserInfo>()
+    private val _verifyGoogleMutable = MutableLiveData<Result<GoogleVerify>>()
 
     fun verifyGoogle(userInfo: UserInfo): LiveData<Result<GoogleVerify>> {
         _userInfo.value = userInfo
         return _userInfo.switchMap {
             googleRepository.verifyGoogleAccount(userInfo.idToken)
-        }.onNext {
-            if (it.isApiSuccess) {
-                userPreference.saveUserInfo(userInfo)
-                logger.userSignedIn()
+                .onEach {
+                    if (it.isApiSuccess) {
+                        userPreference.saveUserInfo(userInfo)
+                        logger.userSignedIn()
+                }
             }
         }
+    }
+
+    fun verifyGoogleCoroutine(userInfo: UserInfo): LiveData<Result<GoogleVerify>> {
+        viewModelScope.launch {
+            val verifyGoogleFlow = googleRepository.verifyGoogleAccountFlow(userInfo.idToken)
+            verifyGoogleFlow.collect {
+                _verifyGoogleMutable.value = it
+            }
+        }
+        return _verifyGoogleMutable
     }
 }

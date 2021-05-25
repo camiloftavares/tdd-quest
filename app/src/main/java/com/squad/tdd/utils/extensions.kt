@@ -4,7 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.Observer
 
-fun <T> LiveData<T>.onNext(onNext: (T) -> Unit): LiveData<T> {
+fun <T> LiveData<T>.onEach(onNext: (T) -> Unit): LiveData<T> {
     val requestMediator = MediatorLiveData<T>()
     val observerRequestSource = Observer<T> { }
     requestMediator.addSource(this) {
