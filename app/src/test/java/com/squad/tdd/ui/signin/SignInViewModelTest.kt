@@ -1,6 +1,7 @@
 package com.squad.tdd.ui.signin
 
 import androidx.lifecycle.MutableLiveData
+import com.squad.tdd.MainCoroutineRule
 import com.squad.tdd.ui.signin.data.GoogleVerify
 import com.squad.tdd.ui.signin.data.Result
 import com.squad.tdd.ui.signin.data.UserInfo
@@ -28,7 +29,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 @ExtendWith(InstantExecutorExtension::class)
 internal class SignInViewModelTest {
 
-    @get:Rule val rule = MainCoroutineRule()
+    @get:Rule var rule = MainCoroutineRule()
 
     private val userPreference = mockk<UserPreference>(relaxed = true)
     private val logger = mockk<AppLogger>(relaxed = true)
@@ -156,16 +157,82 @@ internal class SignInViewModelTest {
         viewModel.verifyGoogle(userInfo).observeForever { }
     }
 
-    @Test
-    fun `should return success`() = runBlockingTest {
-        val successResult = Result.Success(GoogleVerify("200"))
-        val channel = Channel<Result<GoogleVerify>>()
-        every { googleRepository.verifyGoogleAccountFlow(userInfo.idToken) } returns
-                channel.consumeAsFlow()
-        launch { channel.send(successResult) }
 
-        val verifyGoogleCoroutine = viewModel.verifyGoogleCoroutine(userInfo).getOrAwaitValue()
+    @Nested
+    inner class VerifyGoogleUsingFlow {
+        private val channel = Channel<Result<GoogleVerify>>()
+        private val flow = channel.consumeAsFlow()
 
-        verifyGoogleCoroutine shouldBeEqualTo successResult
+
+        @Test
+        fun `should return success`() = runBlockingTest {
+            val successResult = Result.Success(GoogleVerify("200"))
+
+            every { googleRepository.verifyGoogleAccountFlow(userInfo.idToken) } returns flow
+            launch { channel.send(successResult) }
+
+            val verifyGoogleCoroutine = viewModel.verifyGoogleCoroutine(userInfo).getOrAwaitValue()
+
+            verifyGoogleCoroutine shouldBeEqualTo successResult
+        }
+
+        @Test
+        fun `should return error`() = runBlockingTest {
+            val errorResult = Result.ApiError(Exception())
+
+            every { googleRepository.verifyGoogleAccountFlow(userInfo.idToken) } returns flow
+            launch { channel.send(errorResult) }
+
+            val verifyGoogleCoroutine = viewModel.verifyGoogleCoroutine(userInfo).getOrAwaitValue()
+
+            verifyGoogleCoroutine shouldBeEqualTo errorResult
+        }
+
+        @Test
+        fun `should return loading`() = runBlockingTest {
+            val loadingResult = Result.Loading
+
+            every { googleRepository.verifyGoogleAccountFlow(userInfo.idToken) } returns flow
+            launch { channel.send(loadingResult) }
+
+            val verifyGoogleCoroutine = viewModel.verifyGoogleCoroutine(userInfo).getOrAwaitValue()
+
+            verifyGoogleCoroutine shouldBeEqualTo loadingResult
+        }
+
+        @Test
+        fun `should save when return success`() = runBlockingTest {
+            val successResult = Result.Success(GoogleVerify("200"))
+
+            callVerifyGoogleWithResultStatus(successResult)
+
+            verify { userPreference.saveUserInfo(userInfo) }
+        }
+
+        @Test
+        fun `should not save when return error`() {
+            val errorResult = Result.ApiError(Exception())
+
+            callVerifyGoogleWithResultStatus(errorResult)
+
+            verify { userPreference wasNot Called }
+        }
+
+        @Test
+        fun `should not save when return loading`() {
+            val loadingResult = Result.Loading
+
+            callVerifyGoogleWithResultStatus(loadingResult)
+
+            verify { userPreference wasNot Called }
+        }
+
+        private fun callVerifyGoogleWithResultStatus(resultStatus: Result<GoogleVerify>) = runBlockingTest {
+            every { googleRepository.verifyGoogleAccountFlow(userInfo.idToken) } returns flow
+            launch { channel.send(resultStatus) }
+
+            viewModel.verifyGoogleCoroutine(userInfo).getOrAwaitValue()
+        }
     }
+
 }

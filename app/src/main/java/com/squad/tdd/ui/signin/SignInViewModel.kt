@@ -8,7 +8,9 @@ import com.squad.tdd.ui.signin.preferences.UserPreference
 import com.squad.tdd.ui.signin.repositories.GoogleRepository
 import com.squad.tdd.utils.AppLogger
 import com.squad.tdd.utils.onEach
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 class SignInViewModel(private val googleRepository: GoogleRepository,
@@ -33,9 +35,15 @@ class SignInViewModel(private val googleRepository: GoogleRepository,
 
     fun verifyGoogleCoroutine(userInfo: UserInfo): LiveData<Result<GoogleVerify>> {
         viewModelScope.launch {
-            val verifyGoogleFlow = googleRepository.verifyGoogleAccountFlow(userInfo.idToken)
-            verifyGoogleFlow.collect {
-                _verifyGoogleMutable.value = it
+            googleRepository.verifyGoogleAccountFlow(userInfo.idToken)
+                    .onEach { result ->
+                        if (result.isApiSuccess) {
+                            userPreference.saveUserInfo(userInfo)
+                            logger.userSignedIn()
+                        }
+                    }
+                    .collect {
+                        _verifyGoogleMutable.value = it
             }
         }
         return _verifyGoogleMutable

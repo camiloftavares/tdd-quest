@@ -1,4 +1,4 @@
-package com.squad.tdd.utils
+package com.squad.tdd
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -11,8 +11,7 @@ import org.junit.runner.Description
 
 @ExperimentalCoroutinesApi
 class MainCoroutineRule(private val dispatcher: TestCoroutineDispatcher = TestCoroutineDispatcher()):
-    TestWatcher(),
-    TestCoroutineScope by TestCoroutineScope(dispatcher) {
+    TestWatcher() {
     override fun starting(description: Description?) {
         super.starting(description)
         Dispatchers.setMain(dispatcher)
@@ -20,7 +19,7 @@ class MainCoroutineRule(private val dispatcher: TestCoroutineDispatcher = TestCo
 
     override fun finished(description: Description?) {
         super.finished(description)
-        cleanupTestCoroutines()
+//        cleanupTestCoroutines()
         Dispatchers.resetMain()
     }
 }
