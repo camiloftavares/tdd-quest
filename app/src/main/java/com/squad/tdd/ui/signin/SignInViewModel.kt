@@ -1,51 +1,34 @@
 package com.squad.tdd.ui.signin
 
 import androidx.lifecycle.*
-import com.squad.tdd.ui.signin.data.GoogleVerify
-import com.squad.tdd.ui.signin.data.Result
-import com.squad.tdd.ui.signin.data.UserInfo
-import com.squad.tdd.ui.signin.preferences.UserPreference
-import com.squad.tdd.ui.signin.repositories.GoogleRepository
+import com.squad.tdd.data.GoogleVerify
+import com.squad.tdd.data.Result
+import com.squad.tdd.data.UserInfo
+import com.squad.tdd.preferences.UserPreference
+import com.squad.tdd.repositories.GoogleRepository
+import com.squad.tdd.usecases.GoogleVerifyUseCase
 import com.squad.tdd.utils.AppLogger
 import com.squad.tdd.utils.onEach
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
-class SignInViewModel(private val googleRepository: GoogleRepository,
-                      private val userPreference: UserPreference,
-                      private val logger: AppLogger) : ViewModel() {
-
-    private val _userInfo = MutableLiveData<UserInfo>()
-    private val _verifyGoogleMutable = MutableLiveData<Result<GoogleVerify>>()
+class SignInViewModel(
+    private val googleVerifyUseCase: GoogleVerifyUseCase
+) : ViewModel() {
 
     fun verifyGoogle(userInfo: UserInfo): LiveData<Result<GoogleVerify>> {
-        _userInfo.value = userInfo
-        return _userInfo.switchMap {
-            googleRepository.verifyGoogleAccount(userInfo.idToken)
-                .onEach {
-                    if (it.isApiSuccess) {
-                        userPreference.saveUserInfo(userInfo)
-                        logger.userSignedIn()
-                }
-            }
-        }
+        return googleVerifyUseCase.verifyGoogle(userInfo)
     }
 
     fun verifyGoogleCoroutine(userInfo: UserInfo): LiveData<Result<GoogleVerify>> {
+        val verifyGoogleResult = MutableLiveData<Result<GoogleVerify>>()
         viewModelScope.launch {
-            googleRepository.verifyGoogleAccountFlow(userInfo.idToken)
-                    .onEach { result ->
-                        if (result.isApiSuccess) {
-                            userPreference.saveUserInfo(userInfo)
-                            logger.userSignedIn()
-                        }
-                    }
+            googleVerifyUseCase.verifyGoogleCoroutine(userInfo)
                     .collect {
-                        _verifyGoogleMutable.value = it
+                        verifyGoogleResult.value = it
             }
         }
-        return _verifyGoogleMutable
+        return verifyGoogleResult
     }
 }

@@ -1,4 +1,4 @@
-package com.squad.tdd.ui.signin.data
+package com.squad.tdd.data
 
 import java.lang.Exception
 

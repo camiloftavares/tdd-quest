@@ -1,8 +1,8 @@
-package com.squad.tdd.ui.signin.repositories
+package com.squad.tdd.repositories
 
 import androidx.lifecycle.LiveData
-import com.squad.tdd.ui.signin.data.GoogleVerify
-import com.squad.tdd.ui.signin.data.Result
+import com.squad.tdd.data.GoogleVerify
+import com.squad.tdd.data.Result
 import kotlinx.coroutines.flow.Flow
 
 interface GoogleRepository {

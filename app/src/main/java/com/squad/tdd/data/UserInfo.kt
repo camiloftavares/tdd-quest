@@ -1,3 +1,3 @@
-package com.squad.tdd.ui.signin.data
+package com.squad.tdd.data
 
 data class UserInfo(val idToken: String)
