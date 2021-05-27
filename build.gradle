@@ -25,3 +25,9 @@ allprojects {
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
+
+task revokeLocationPermissions(type: Exec) {
+    def revokeLocationPermission = ['adb', 'shell', 'pm', 'revoke', 'com.squad.tdd' , 'android.permission.ACCESS_FINE_LOCATION']
+    commandLine revokeLocationPermission
+    outputs.upToDateWhen { false }
+}

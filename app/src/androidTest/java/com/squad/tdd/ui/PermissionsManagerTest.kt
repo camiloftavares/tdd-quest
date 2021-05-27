@@ -7,6 +7,10 @@ import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.UiSelector
 import com.squad.tdd.MainActivity
+import com.squad.tdd.R
+import com.squad.tdd.ui.signin.data.GoogleVerify
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Assert
 import org.junit.Before
@@ -122,6 +126,30 @@ class PermissionsManagerTest {
         Assert.assertThat(flag, equalTo(true))
     }
 
+    @Test
+    fun shouldShowPermissionRationaleWhenPermissionIsRequestedAfterBeingDenied() {
+
+        var permissionManager: PermissionManager? = null
+        launchActivityAndThen { activity ->
+            permissionManager = activity.permissionManager
+            permissionManager?.requestPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+
+        assertDialogAndDenyPermission(uiDevice)
+
+        permissionManager?.callPermissionBoundedAction(Manifest.permission.ACCESS_FINE_LOCATION)
+
+        runBlocking {
+            delay(100)
+        }
+        assertViewWithTextIsVisible(uiDevice, getTextFromResource(R.string.permission_rationale_default_text))
+        clickButtonWithText(uiDevice, "OK")
+    }
+
+    private fun getTextFromResource(resourceId: Int): String {
+        return InstrumentationRegistry.getInstrumentation().targetContext.getString(resourceId)
+    }
+
     private fun launchActivityAndThen(onActivityLaunched: (activity: MainActivity) -> Unit) {
         val scenario = launchActivity<MainActivity>()
 
@@ -131,10 +159,10 @@ class PermissionsManagerTest {
     }
 
     private fun clickButtonWithText(uiDevice: UiDevice, text: String) {
-        val allowButton = uiDevice.findObject(UiSelector().text(text))
+        val button = uiDevice.findObject(UiSelector().text(text))
 
-        if (allowButton.exists()) {
-            allowButton.click()
+        if (button.exists()) {
+            button.click()
         }
     }
 
