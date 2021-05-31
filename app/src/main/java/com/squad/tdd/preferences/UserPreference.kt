@@ -4,6 +4,6 @@ import com.squad.tdd.data.UserInfo
 import kotlinx.coroutines.flow.Flow
 
 interface UserPreference {
-    fun saveUserInfo(userInfo: UserInfo)
-    fun getUserInfo(): Flow<String>
+    suspend fun saveUserInfo(userInfo: UserInfo)
+    fun getUserInfo(): Flow<UserInfo>
 }

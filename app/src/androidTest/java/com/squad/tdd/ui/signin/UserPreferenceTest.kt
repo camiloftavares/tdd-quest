@@ -2,25 +2,47 @@ package com.squad.tdd.ui.signin
 
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.squad.tdd.data.UserInfo
 import com.squad.tdd.ui.signin.preferences.UserPreferenceImp
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.InternalCoroutinesApi
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import org.hamcrest.CoreMatchers.`is`
+import org.hamcrest.CoreMatchers.any
 import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
 
 @InternalCoroutinesApi
+@ExperimentalCoroutinesApi
 @RunWith(AndroidJUnit4::class)
 class UserPreferenceTest {
     private val dataStore = UserPreferenceImp(ApplicationProvider.getApplicationContext())
 
-    @ExperimentalCoroutinesApi
     @Test
-    fun shouldReturnNullWhenGetUserInfoDoesntExistInDataStore() = runBlockingTest {
-        dataStore.getUserInfo().collect {
-            Assert.assertNull(it)
+    fun shouldReturnUserInfoWhenGetUserInfoTokenIsValid() = runBlocking {
+        dataStore.saveUserInfo(UserInfo("id_token"))
+        val data = dataStore.getUserInfo().first()
+        Assert.assertThat(data, `is`(any(UserInfo::class.java)))
+    }
+
+    @Test
+    fun shouldReturnExceptionWhenGetUserInfoTokenIsNull(): Unit = runBlocking {
+        try {
+            dataStore.getUserInfo().first()
+        } catch (e: Exception) {
+            Assert.assertThat(e.message, `is`("Invalid Token ID."))
         }
     }
+
+    @Test
+    fun shouldReturnUserInfoWhenGetUserInfoIsTriggered() = runBlocking {
+        val dummyUserInfo = UserInfo("id_token", "name", "email", "avatar")
+
+        dataStore.saveUserInfo(dummyUserInfo)
+        val data = dataStore.getUserInfo().first()
+        Assert.assertThat(data, `is`(dummyUserInfo))
+    }
+
 }

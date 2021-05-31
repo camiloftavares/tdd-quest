@@ -1,6 +1,5 @@
 package com.squad.tdd.ui.signin
 
-import androidx.lifecycle.MutableLiveData
 import com.squad.tdd.MainCoroutineRule
 import com.squad.tdd.data.GoogleVerify
 import com.squad.tdd.data.Result
@@ -11,16 +10,13 @@ import com.squad.tdd.utils.getOrAwaitValue
 import com.squad.tdd.utils.shouldBeEqualTo
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runBlockingTest
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -29,58 +25,17 @@ import org.junit.jupiter.api.extension.ExtendWith
 @ExtendWith(InstantExecutorExtension::class)
 internal class SignInViewModelTest {
 
-    @get:Rule var rule = MainCoroutineRule()
+    @get:Rule
+    var rule = MainCoroutineRule()
 
     lateinit var viewModel: SignInViewModel
     private val googleVerifyUseCase = mockk<GoogleVerifyUseCase>()
-    private val userInfo = UserInfo("idToken")
+    private val userInfo = UserInfo("idToken", "name", "email", "avatar")
 
     @BeforeEach
     fun setUp() {
         viewModel = SignInViewModel(googleVerifyUseCase)
     }
-
-    @Nested
-    @Ignore
-    @DisplayName("Google verify")
-    inner class GoogleVerifyFlow {
-
-        @Test
-        fun `should return success`() {
-            val googleVerify = Result.Success(GoogleVerify("200"))
-            verifyResultGivenResponse(
-                result = googleVerify,
-                response =  MutableLiveData(googleVerify)
-            )
-            verify { googleVerifyUseCase.verifyGoogle(any()) }
-        }
-
-        @Test
-        fun `should return error`() {
-            val exception = Exception()
-            verifyResultGivenResponse(
-                result = Result.ApiError(exception),
-                response =  MutableLiveData(Result.ApiError(exception))
-            )
-        }
-
-        @Test
-        fun `should return loading`() {
-            verifyResultGivenResponse(
-                result = Result.Loading,
-                response = MutableLiveData(Result.Loading)
-            )
-        }
-
-        private fun verifyResultGivenResponse(result: Result<Any>, response: MutableLiveData<Result<GoogleVerify>>) {
-            every { googleVerifyUseCase.verifyGoogle(any()) } returns response
-
-            val verifyGoogle = viewModel.verifyGoogle(userInfo)
-
-            verifyGoogle.getOrAwaitValue() shouldBeEqualTo result
-        }
-    }
-
 
     @Nested
     inner class VerifyGoogleUsingFlow {

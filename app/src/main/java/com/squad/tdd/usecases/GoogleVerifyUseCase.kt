@@ -19,21 +19,6 @@ class GoogleVerifyUseCase(
     private val logger: AppLogger
 ) {
 
-    private val _userInfo = MutableLiveData<UserInfo>()
-
-    fun verifyGoogle(userInfo: UserInfo): LiveData<Result<GoogleVerify>> {
-        _userInfo.value = userInfo
-        return _userInfo.switchMap {
-            googleRepository.verifyGoogleAccount(userInfo.idToken)
-                .onEach {
-                    if (it.isApiSuccess) {
-                        userPreference.saveUserInfo(userInfo)
-                        logger.userSignedIn()
-                    }
-                }
-        }
-    }
-
     fun verifyGoogleCoroutine(userInfo: UserInfo): Flow<Result<GoogleVerify>> {
         return googleRepository.verifyGoogleAccountFlow(userInfo.idToken)
             .onEach { result ->
