@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.squad.tdd.data.UserInfo
 import com.squad.tdd.preferences.UserPreference
+import com.squad.tdd.utils.zip
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -28,18 +29,10 @@ class UserPreferenceImp(private val context: Context) : UserPreference {
         saveStringDataStore(AVATAR, userInfo.avatar)
     }
 
-    val getToken: Flow<String>
-        get() = context.dataStore.data.map {
-            it[TOKEN] ?: throw Exception("Invalid Token ID.")
-        }
-
-    val getName: Flow<String>
-        get() = context.dataStore.data.map {
-            it[NAME] ?: ""
-        }
-
-    // TODO: FINISH
     override fun getUserInfo(): Flow<UserInfo> {
+        return getToken.zip(getName, getEmail, getAvatar) { a, b, c, d ->
+            UserInfo(a, b, c, d)
+        }
     }
 
     private suspend fun saveStringDataStore(key: Preferences.Key<String>, value: String) {
@@ -48,5 +41,23 @@ class UserPreferenceImp(private val context: Context) : UserPreference {
         }
     }
 
+    private val getToken: Flow<String>
+        get() = context.dataStore.data.map {
+            it[TOKEN] ?: throw Exception("Invalid Token ID.")
+        }
 
+    private val getName: Flow<String>
+        get() = context.dataStore.data.map {
+            it[NAME] ?: ""
+        }
+
+    private val getEmail: Flow<String>
+        get() = context.dataStore.data.map {
+            it[EMAIL] ?: ""
+        }
+
+    private val getAvatar: Flow<String>
+        get() = context.dataStore.data.map {
+            it[AVATAR] ?: ""
+        }
 }
