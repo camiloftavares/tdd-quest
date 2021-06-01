@@ -30,9 +30,7 @@ class UserPreferenceImp(private val context: Context) : UserPreference {
     }
 
     override fun getUserInfo(): Flow<UserInfo> {
-        return getToken.zip(getName, getEmail, getAvatar) { a, b, c, d ->
-            UserInfo(a, b, c, d)
-        }
+        return getToken.zip(getName, getEmail, getAvatar) { a, b, c, d -> UserInfo(a, b, c, d) }
     }
 
     private suspend fun saveStringDataStore(key: Preferences.Key<String>, value: String) {

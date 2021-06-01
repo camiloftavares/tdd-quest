@@ -17,21 +17,12 @@ fun <T> LiveData<T>.onEach(onNext: (T) -> Unit): LiveData<T> {
     return requestMediator
 }
 
-// FIXME: refactor zip extension to remove the zipper auxiliary class
-class Zipper(val first: Any? = null, val second: Any? = null, val third: Any? = null)
-
 fun <T1, T2, T3, T4, R> Flow<T1>.zip(
-    first: Flow<T2>,
-    second: Flow<T3>,
-    third: Flow<T4>,
+    second: Flow<T2>,
+    third: Flow<T3>,
+    fourth: Flow<T4>,
     transform: suspend (T1, T2, T3, T4) -> R
-): Flow<R> {
-    return this.zip(first) { a, b -> Zipper(a, b) }
-        .zip(second) { zipper, c -> Zipper(zipper.first, zipper.second, c) }
-        .zip(third) { zipper, d ->
-            transform(
-                zipper.first as T1,
-                zipper.second as T2, zipper.third as T3, d
-            )
-        }
-}
+): Flow<R> =
+    this.zip(second) { a, b -> a to b }
+        .zip(third) { (a, b), c -> Triple(a, b, c) }
+        .zip(fourth) { triple, d -> transform(triple.first, triple.second, triple.third, d) }
