@@ -1,24 +1,13 @@
-package com.squad.tdd.ui
+package com.squad.tdd.helpers
 
 import android.app.Activity
 import android.app.AlertDialog
-import android.content.DialogInterface
 import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
-import com.squad.tdd.R
-
-interface PermissionManager {
-
-    fun requestPermission(requestedPermissions: String, onPermissionGranted: () -> Unit = {}, onPermissionDenied: () -> Unit = {})
-
-    fun isPermissionGranted(requestedPermission: String): Boolean
-
-    fun callPermissionBoundedAction(requestedPermission: String, onPermissionGranted: () -> Unit = {}, onPermissionDenied: () -> Unit = {}, rationaleTextId: Int = R.string.permission_rationale_default_text)
-}
 
 class PermissionManagerImpl(
-    private val activity: Activity,
-    private val permissionLauncher: (requestedPermissions: String, onPermissionGranted: () -> Unit, onPermissionDenied: () -> Unit) -> Unit
+        private val activity: Activity,
+        private val permissionLauncher: (requestedPermissions: String, onPermissionGranted: () -> Unit, onPermissionDenied: () -> Unit) -> Unit
 ) : PermissionManager {
 
     private fun checkPermissionStatus(requestedPermission: String): Int {
@@ -33,13 +22,13 @@ class PermissionManagerImpl(
         return checkPermissionStatus(requestedPermission) == PackageManager.PERMISSION_GRANTED
     }
 
-    override fun callPermissionBoundedAction(requestedPermission: String, onPermissionGranted: () -> Unit, onPermissionDenied: () -> Unit, rationaleTextId: Int) {
+    override fun handlePermission(requestedPermission: String, onPermissionGranted: () -> Unit, onPermissionDenied: () -> Unit, rationaleTextId: Int) {
         when {
             checkPermissionStatus(requestedPermission) == PackageManager.PERMISSION_GRANTED -> {
                 onPermissionGranted()
             }
             activity.shouldShowRequestPermissionRationale(requestedPermission) -> {
-                requestPermissionRationale(rationaleTextId)
+                requestPermissionRationale(rationaleTextId, requestedPermission, onPermissionGranted, onPermissionDenied)
             }
             else -> {
                 requestPermission(requestedPermission, onPermissionGranted, onPermissionDenied)
@@ -47,11 +36,13 @@ class PermissionManagerImpl(
         }
     }
 
-    private fun requestPermissionRationale(rationaleTextId: Int) {
+    private fun requestPermissionRationale(rationaleTextId: Int, requestedPermission: String, onPermissionGranted: () -> Unit, onPermissionDenied: () -> Unit) {
         activity.runOnUiThread {
             val builder = AlertDialog.Builder(activity)
             builder.setMessage(activity.getString(rationaleTextId))
-            builder.setPositiveButton("OK", { dialog, which ->  })
+            builder.setPositiveButton("OK") { _, _ ->
+                requestPermission(requestedPermission, onPermissionGranted, onPermissionDenied)
+            }
             builder.show()
         }
     }

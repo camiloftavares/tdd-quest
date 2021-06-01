@@ -8,7 +8,7 @@ import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.UiSelector
 import com.squad.tdd.MainActivity
 import com.squad.tdd.R
-import com.squad.tdd.ui.signin.data.GoogleVerify
+import com.squad.tdd.helpers.PermissionManager
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.CoreMatchers.equalTo
@@ -34,9 +34,10 @@ class PermissionsManagerTest {
         var permissionManager: PermissionManager? = null
         launchActivityAndThen  { activity ->
             permissionManager = activity.permissionManager
-            activity.permissionManager.requestPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+            permissionManager?.requestPermission(Manifest.permission.ACCESS_FINE_LOCATION)
         }
 
+        //clickButtonWithText(uiDevice, "Don't ask again")
         assertDialogAndDenyPermission(uiDevice)
 
         Assert.assertThat(permissionManager?.isPermissionGranted(Manifest.permission.ACCESS_FINE_LOCATION),
@@ -51,13 +52,15 @@ class PermissionsManagerTest {
         var deniedFlag = false
 
         launchActivityAndThen { activity ->
-            activity.permissionManager.callPermissionBoundedAction(Manifest.permission.ACCESS_FINE_LOCATION,
+            activity.permissionManager.handlePermission(Manifest.permission.ACCESS_FINE_LOCATION,
             onPermissionGranted = {
                 grantedFlag = true
             }, onPermissionDenied = {
                 deniedFlag = true
             })
         }
+
+        clickButtonWithText(uiDevice, "OK")
 
         assertDialogAndAllowPermission(uiDevice)
 
@@ -73,13 +76,15 @@ class PermissionsManagerTest {
         var deniedFlag = false
 
         launchActivityAndThen { activity ->
-            activity.permissionManager.callPermissionBoundedAction(Manifest.permission.ACCESS_FINE_LOCATION,
+            activity.permissionManager.handlePermission(Manifest.permission.ACCESS_FINE_LOCATION,
             onPermissionGranted = {
                 grantedFlag = true
             }, onPermissionDenied = {
                 deniedFlag = true
             })
         }
+
+        clickButtonWithText(uiDevice, "OK")
 
         assertDialogAndDenyPermission(uiDevice)
 
@@ -95,16 +100,19 @@ class PermissionsManagerTest {
         var flag = false
 
         launchActivityAndThen { activity ->
-            activity.permissionManager.callPermissionBoundedAction(Manifest.permission.ACCESS_FINE_LOCATION,
+            activity.permissionManager.handlePermission(Manifest.permission.ACCESS_FINE_LOCATION,
                     onPermissionGranted = {
-                activity.permissionManager.callPermissionBoundedAction(Manifest.permission.CAMERA,
+                activity.permissionManager.handlePermission(Manifest.permission.CAMERA,
                     onPermissionGranted = {
                     flag = true
                 })
             })
         }
 
+        clickButtonWithText(uiDevice, "OK")
         assertDialogAndAllowPermission(uiDevice)
+
+        clickButtonWithText(uiDevice, "OK")
         assertDialogAndAllowPermission(uiDevice)
 
         Assert.assertThat(flag, equalTo(true))
@@ -117,18 +125,20 @@ class PermissionsManagerTest {
         var flag = false
 
         launchActivityAndThen { activity ->
-            activity.permissionManager.callPermissionBoundedAction(Manifest.permission.ACCESS_FINE_LOCATION,
+            activity.permissionManager.handlePermission(Manifest.permission.ACCESS_FINE_LOCATION,
             onPermissionGranted = {
                 flag = true
             })
         }
 
+        assertPermissionDialogWasNotCreated(uiDevice)
         Assert.assertThat(flag, equalTo(true))
     }
 
     @Test
     fun shouldShowPermissionRationaleWhenPermissionIsRequestedAfterBeingDenied() {
 
+        // given permission is not granted yet
         var permissionManager: PermissionManager? = null
         launchActivityAndThen { activity ->
             permissionManager = activity.permissionManager
@@ -137,13 +147,34 @@ class PermissionsManagerTest {
 
         assertDialogAndDenyPermission(uiDevice)
 
-        permissionManager?.callPermissionBoundedAction(Manifest.permission.ACCESS_FINE_LOCATION)
+        permissionManager?.handlePermission(Manifest.permission.ACCESS_FINE_LOCATION)
 
         runBlocking {
             delay(100)
         }
         assertViewWithTextIsVisible(uiDevice, getTextFromResource(R.string.permission_rationale_default_text))
         clickButtonWithText(uiDevice, "OK")
+    }
+
+    @Test
+    fun shouldNotShowPermissionDialogWhenDontShowAgainCheckBoxIsClicked() {
+
+        // Given permission is not granted and 'Dont ask again' checkbox was not clicked yet
+        var permissionManager: PermissionManager? = null
+        launchActivityAndThen { activity ->
+            permissionManager = activity.permissionManager
+            permissionManager?.handlePermission(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+
+        clickButtonWithText(uiDevice, "OK")
+
+        clickButtonWithText(uiDevice, "Don't ask again")
+
+        assertDialogAndDenyPermission(uiDevice)
+
+        permissionManager?.handlePermission(Manifest.permission.ACCESS_FINE_LOCATION)
+
+        assertViewWithTextIsNotVisible(uiDevice, "ALLOW")
     }
 
     private fun getTextFromResource(resourceId: Int): String {
@@ -170,6 +201,16 @@ class PermissionsManagerTest {
         val allowButton = uiDevice.findObject(UiSelector().text(text))
 
         Assert.assertThat(allowButton.exists(), equalTo(true))
+    }
+
+    private fun assertViewWithTextIsNotVisible(uiDevice: UiDevice, text: String) {
+        val allowButton = uiDevice.findObject(UiSelector().text(text))
+
+        Assert.assertThat(allowButton.exists(), equalTo(false))
+    }
+
+    private fun assertPermissionDialogWasNotCreated(uiDevice: UiDevice) {
+        assertViewWithTextIsNotVisible(uiDevice, "ALLOW")
     }
 
     private fun assertDialogAndAllowPermission(uiDevice: UiDevice) {
