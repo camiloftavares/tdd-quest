@@ -1,5 +1,7 @@
 package com.squad.tdd.ui.signin
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.Observer
 import com.squad.tdd.MainCoroutineRule
 import com.squad.tdd.data.GoogleVerify
 import com.squad.tdd.data.Result
@@ -8,7 +10,7 @@ import com.squad.tdd.usecases.GoogleVerifyUseCase
 import com.squad.tdd.utils.InstantExecutorExtension
 import com.squad.tdd.utils.getOrAwaitValue
 import com.squad.tdd.utils.shouldBeEqualTo
-import io.mockk.every
+import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
@@ -47,7 +49,7 @@ internal class SignInViewModelTest {
         fun `should return success`() = runBlockingTest {
             val successResult = Result.Success(GoogleVerify("200"))
 
-            every { googleVerifyUseCase.verifyGoogleCoroutine(userInfo) } returns flow
+            coEvery { googleVerifyUseCase.verifyGoogleCoroutine(userInfo) } returns flow
             launch { channel.send(successResult) }
 
             val verifyGoogleCoroutine = viewModel.verifyGoogleCoroutine(userInfo).getOrAwaitValue()
@@ -57,9 +59,9 @@ internal class SignInViewModelTest {
 
         @Test
         fun `should return error`() = runBlockingTest {
-            val errorResult = Result.ApiError(Exception())
+            val errorResult = Result.ApiError("400")
 
-            every { googleVerifyUseCase.verifyGoogleCoroutine(userInfo) } returns flow
+            coEvery { googleVerifyUseCase.verifyGoogleCoroutine(userInfo) } returns flow
             launch { channel.send(errorResult) }
 
             val verifyGoogleCoroutine = viewModel.verifyGoogleCoroutine(userInfo).getOrAwaitValue()
@@ -71,13 +73,27 @@ internal class SignInViewModelTest {
         fun `should return loading`() = runBlockingTest {
             val loadingResult = Result.Loading
 
-            every { googleVerifyUseCase.verifyGoogleCoroutine(userInfo) } returns flow
+            coEvery { googleVerifyUseCase.verifyGoogleCoroutine(userInfo) } returns flow
             launch { channel.send(loadingResult) }
 
             val verifyGoogleCoroutine = viewModel.verifyGoogleCoroutine(userInfo).getOrAwaitValue()
+            val returned = viewModel.verifyGoogleCoroutine(userInfo)
+            returned.observeForTesting {
+                returned.value shouldBeEqualTo  loadingResult
+            }
 
             verifyGoogleCoroutine shouldBeEqualTo loadingResult
         }
     }
 
+}
+
+fun <T> LiveData<T>.observeForTesting(block: () -> Unit) {
+    val observer = Observer<T> { Unit }
+    try {
+        observeForever(observer)
+        block()
+    } finally {
+        removeObserver(observer)
+    }
 }

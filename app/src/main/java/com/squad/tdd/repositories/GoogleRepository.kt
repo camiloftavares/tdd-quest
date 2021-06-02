@@ -6,5 +6,4 @@ import kotlinx.coroutines.flow.Flow
 
 interface GoogleRepository {
     fun verifyGoogleAccountFlow(idToken: String): Flow<Result<GoogleVerify>>
-
 }

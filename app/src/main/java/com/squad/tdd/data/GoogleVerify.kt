@@ -1,3 +1,3 @@
 package com.squad.tdd.data
 
-data class GoogleVerify(val code: String)
+data class GoogleVerify(val code: String = "200")

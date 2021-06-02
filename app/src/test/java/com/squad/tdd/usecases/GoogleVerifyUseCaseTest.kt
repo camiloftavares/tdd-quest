@@ -62,7 +62,7 @@ internal class GoogleVerifyUseCaseTest {
 
         @Test
         fun `should return error`() = runBlockingTest {
-            val errorResult = Result.ApiError(Exception())
+            val errorResult = Result.ApiError("")
 
             every { googleRepository.verifyGoogleAccountFlow(userInfo.idToken) } returns flow
             launch {
@@ -103,7 +103,7 @@ internal class GoogleVerifyUseCaseTest {
 
         @Test
         fun `should not save when return error`() {
-            val errorResult = Result.ApiError(Exception())
+            val errorResult = Result.ApiError("")
 
             callVerifyGoogleWithResultStatus(errorResult)
 
