@@ -1,9 +1,8 @@
-package com.squad.tdd.ui.signin
+package com.squad.tdd.preferences
 
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.squad.tdd.data.UserInfo
-import com.squad.tdd.ui.signin.preferences.UserPreferenceImp
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.flow.first
