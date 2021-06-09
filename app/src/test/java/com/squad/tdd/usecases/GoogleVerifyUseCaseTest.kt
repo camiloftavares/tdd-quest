@@ -13,7 +13,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.consumeAsFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -30,7 +30,8 @@ internal class GoogleVerifyUseCaseTest {
 
     lateinit var useCase: GoogleVerifyUseCase
 
-    private val userInfo = UserInfo("idToken", "name", "email", "avatar")
+    private val userInfo = UserInfo("idToken")
+    val errorCode = "400"
 
     @BeforeEach
     fun setUp() {
@@ -49,11 +50,7 @@ internal class GoogleVerifyUseCaseTest {
         @Test
         fun `should return success`() = runBlockingTest {
             val successResult = Result.Success(GoogleVerify("200"))
-            every { googleRepository.verifyGoogleAccountFlow(userInfo.idToken) } returns flow
-            launch {
-                channel.send(successResult)
-                channel.close()
-            }
+            coEvery { googleRepository.verifyGoogleAccountFlow(userInfo.idToken) } returns flowOf(successResult)
 
             useCase.verifyGoogleCoroutine(userInfo).collect {
                 it shouldBeEqualTo successResult
@@ -64,11 +61,7 @@ internal class GoogleVerifyUseCaseTest {
         fun `should return error`() = runBlockingTest {
             val errorResult = Result.ApiError("")
 
-            every { googleRepository.verifyGoogleAccountFlow(userInfo.idToken) } returns flow
-            launch {
-                channel.send(errorResult)
-                channel.close()
-            }
+            every { googleRepository.verifyGoogleAccountFlow(userInfo.idToken) } returns flowOf(errorResult)
 
             useCase.verifyGoogleCoroutine(userInfo).collect {
                 it shouldBeEqualTo errorResult
@@ -80,11 +73,7 @@ internal class GoogleVerifyUseCaseTest {
         fun `should return loading`() = runBlockingTest {
             val loadingResult = Result.Loading
 
-            every { googleRepository.verifyGoogleAccountFlow(userInfo.idToken) } returns flow
-            launch {
-                channel.send(loadingResult)
-                channel.close()
-            }
+            coEvery { googleRepository.verifyGoogleAccountFlow(userInfo.idToken) } returns flowOf(loadingResult)
 
             useCase.verifyGoogleCoroutine(userInfo).collect {
                 it shouldBeEqualTo loadingResult
@@ -119,13 +108,9 @@ internal class GoogleVerifyUseCaseTest {
             verify { userPreference wasNot Called }
         }
 
-        private fun callVerifyGoogleWithResultStatus(resultStatus: Result<GoogleVerify>) =
-            runBlockingTest {
-                every { googleRepository.verifyGoogleAccountFlow(userInfo.idToken) } returns flow
-                launch {
-                    channel.send(resultStatus)
-                    channel.close()
-                }
+        private fun callVerifyGoogleWithResultStatus(resultStatus: Result<GoogleVerify>) = runBlockingTest {
+            every { googleRepository.verifyGoogleAccountFlow(userInfo.idToken) } returns
+                    flowOf(resultStatus)
 
                 useCase.verifyGoogleCoroutine(userInfo).collect()
             }
