@@ -7,9 +7,11 @@ import androidx.navigation.Navigation
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.ViewInteraction
 import androidx.test.espresso.assertion.ViewAssertions.matches
-import androidx.test.espresso.matcher.ViewMatchers
 import androidx.test.espresso.matcher.ViewMatchers.*
 import com.squad.tdd.R
+import com.squad.tdd.helpers.SignInHelper
+import com.squad.tdd.preferences.UserPreference
+import io.mockk.every
 
 open class BaseTestRobot {
     private fun widget(resId: Int) : ViewInteraction = onView(withId(resId))

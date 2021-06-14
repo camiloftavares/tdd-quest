@@ -11,6 +11,7 @@ import com.squad.tdd.AuthApplication
 import com.squad.tdd.databinding.MainFragmentBinding
 import com.squad.tdd.di.ServiceLocator
 import com.squad.tdd.helpers.SignInHelper
+import com.squad.tdd.helpers.SignInHelperImpl
 
 class MainFragment : Fragment() {
     companion object {
