@@ -11,7 +11,9 @@ import androidx.fragment.app.viewModels
 import com.squad.tdd.R
 import com.squad.tdd.helpers.PermissionHelper
 import com.squad.tdd.helpers.PermissionHelperImpl
+import com.squad.tdd.helpers.PermissionManager
 import kotlinx.android.synthetic.main.sign_in_fragment.view.*
+
 
 class SignInFragment : Fragment() {
 
@@ -22,6 +24,7 @@ class SignInFragment : Fragment() {
     private val viewModel: SignInViewModel by viewModels()
 
     lateinit var permissionHelper: PermissionHelper
+    lateinit var permissionManager: PermissionManager
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -37,9 +40,10 @@ class SignInFragment : Fragment() {
     }
 
     private fun onSignInButtonClick() {
-        if (!permissionHelper.isLocationPermissionGranted()) {
-            permissionHelper.requestLocationPermission()
-        }
+        permissionManager.handlePermission(Manifest.permission.ACCESS_FINE_LOCATION,
+                rationaleTextId = R.string.permission_rationale_default_text,
+                onPermissionGranted = {}
+        )
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
