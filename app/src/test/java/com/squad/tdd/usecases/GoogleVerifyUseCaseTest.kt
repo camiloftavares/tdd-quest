@@ -28,14 +28,14 @@ internal class GoogleVerifyUseCaseTest {
     private val logger = mockk<AppLogger>(relaxed = true)
     private val googleRepository = mockk<GoogleRepository>()
 
-    lateinit var useCase: GoogleVerifyUseCase
+    lateinit var useCase: GoogleVerifyUseCaseImpl
 
     private val userInfo = UserInfo("idToken")
     val errorCode = "400"
 
     @BeforeEach
     fun setUp() {
-        useCase = GoogleVerifyUseCase(googleRepository, userPreference, logger)
+        useCase = GoogleVerifyUseCaseImpl(googleRepository, userPreference, logger)
     }
 
     // TODO: Logger tests using Coroutines

@@ -4,10 +4,14 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.testing.launchFragmentInContainer
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
+import androidx.test.core.app.launchActivity
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.ViewInteraction
+import androidx.test.espresso.action.ViewActions
+import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.*
+import com.squad.tdd.MainActivity
 import com.squad.tdd.R
 import com.squad.tdd.helpers.SignInHelper
 import com.squad.tdd.preferences.UserPreference
@@ -20,6 +24,8 @@ open class BaseTestRobot {
 
     private fun matchText(viewInteraction: ViewInteraction, text: String) : ViewInteraction = viewInteraction
         .check(matches(withText(text)))
+
+    fun buttonClick(resId: Int): ViewInteraction = widget(resId).perform(click())
 
     fun matchText(resId: Int, text: String) :ViewInteraction =
         matchText(textView(resId), text)
@@ -42,6 +48,10 @@ open class BaseTestRobot {
                 }
             }
         }
+    }
+
+    fun launchMainActivity() {
+        launchActivity<MainActivity>()
     }
 
 }

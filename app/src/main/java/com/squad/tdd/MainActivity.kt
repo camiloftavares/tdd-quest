@@ -3,10 +3,12 @@ package com.squad.tdd
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import com.squad.tdd.di.PermissionManagerActivity
+import com.squad.tdd.di.ServiceLocator
 import com.squad.tdd.helpers.PermissionManager
 import com.squad.tdd.helpers.PermissionManagerImpl
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), PermissionManagerActivity {
 
 
     private var onPermissionGranted: () -> Unit = {}
@@ -27,13 +29,15 @@ class MainActivity : AppCompatActivity() {
         permissionResultLauncher.launch(requestedPermissions)
     }
 
-    val permissionManager: PermissionManager = PermissionManagerImpl(this, ::launchPermissionRequest)
+    val permissionManager: PermissionManager
+        get() = ServiceLocator.providePermissionManager(this, ::launchPermissionRequest)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.main_activity)
     }
 
-
-
+    override fun requirePermissionManager(): PermissionManager {
+        return PermissionManagerImpl(this, ::launchPermissionRequest)
+    }
 }

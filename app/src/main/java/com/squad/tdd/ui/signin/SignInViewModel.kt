@@ -1,9 +1,6 @@
 package com.squad.tdd.ui.signin
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.squad.tdd.data.GoogleVerify
 import com.squad.tdd.data.Result
 import com.squad.tdd.data.UserInfo
@@ -24,5 +21,14 @@ class SignInViewModel(
                 }
         }
         return verifyGoogleResult
+    }
+}
+
+@Suppress("UNCHECKED_CAST")
+class SignInViewModelFactory(
+    private val googleVerifyUseCase: GoogleVerifyUseCase
+) : ViewModelProvider.NewInstanceFactory() {
+    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+        return SignInViewModel(googleVerifyUseCase) as T
     }
 }

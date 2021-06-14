@@ -1,23 +1,9 @@
 package com.squad.tdd.ui.signin
 
-import androidx.fragment.app.testing.launchFragmentInContainer
 import androidx.navigation.NavController
-import androidx.navigation.Navigation
-import androidx.test.InstrumentationRegistry.getTargetContext
-import androidx.test.espresso.Espresso.onView
-import androidx.test.espresso.action.ViewActions.click
-import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
-import androidx.test.uiautomator.UiDevice
-import androidx.test.uiautomator.UiSelector
-import com.squad.tdd.R
-import com.squad.tdd.helpers.PermissionHelperImpl
-import io.mockk.every
+import com.squad.tdd.di.ServiceLocator
 import io.mockk.mockk
-import io.mockk.spyk
-import org.junit.After
-import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -26,55 +12,32 @@ import org.junit.runner.RunWith
 class SignInFragmentTest {
 
     private val navHostController = mockk<NavController>(relaxed = true)
-    private val permissionHelper = spyk(PermissionHelperImpl(mockk()))
-    private lateinit var uiDevice: UiDevice
+    private val permissionManager = FakePermissionManager()
 
     @Before
     fun setUp() {
-
-        //InstrumentationRegistry.getInstrumentation().uiAutomation.
-        //executeShellCommand("pm revoke ${getTargetContext().packageName} android.permission.ACCESS_FINE_LOCATION")
-
-        launchFragment()
-        uiDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
-
-        every {
-            permissionHelper.isLocationPermissionGranted()
-        } returns false
-    }
-
-    @After
-    fun tearDown() {
-        InstrumentationRegistry.getInstrumentation().uiAutomation.
-        executeShellCommand("pm revoke ${getTargetContext().packageName} android.permission.ACCESS_FINE_LOCATION")
-
+        ServiceLocator.permissionManager = permissionManager
     }
 
     @Test
-    fun shouldRequestPermissionWhenUserClickSignInWithoutPermissionGranted() {
-        onView(withId(R.id.sign_in_btn)).perform(click())
+    fun shouldKeepOnSignScreenWhenUserDenyPermissions() {
+        permissionManager.isPermissionDenied = true
 
-        assertViewWithTextIsVisible(uiDevice, "ALLOW")
-//        verify { permissionHelper.requestLocationPermission() }
+        signInScreen {
+            launchSignInScreen(navHostController)
+            signInClick()
+            shouldNotNavigateToMainScreen(navHostController)
+        }
     }
 
-    private fun assertViewWithTextIsVisible(uiDevice: UiDevice, text: String) {
-        val allowButton = uiDevice.findObject(UiSelector().text(text))
+    @Test
+    fun shouldNavigateToMainScreenWhenPermissionIsGranted() {
+        permissionManager.isPermissionDenied = false
 
-        Assert.assertEquals(allowButton.exists(), true)
-    }
-
-    private fun launchFragment() {
-        launchFragmentInContainer {
-            SignInFragment().also { fragment ->
-                fragment.permissionHelper = permissionHelper
-                fragment.viewLifecycleOwnerLiveData.observeForever { viewLifeCycleOwner ->
-                    if (viewLifeCycleOwner != null) {
-                        navHostController.setGraph(R.navigation.main_nav)
-                        Navigation.setViewNavController(fragment.requireView(), navHostController)
-                    }
-                }
-            }
+        signInScreen {
+            launchSignInScreen(navHostController)
+            signInClick()
+            shouldNavigateToMainScreen(navHostController)
         }
     }
 }

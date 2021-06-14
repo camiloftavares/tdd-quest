@@ -18,5 +18,9 @@
         android:id="@+id/signInFragment"
         android:name="com.squad.tdd.ui.signin.SignInFragment"
         android:label="sign_in_fragment"
-        tools:layout="@layout/sign_in_fragment" />
+        tools:layout="@layout/sign_in_fragment">
+        <action
+            android:id="@+id/action_main_screen"
+            app:destination="@id/mainFragment" />
+    </fragment>
 </navigation>

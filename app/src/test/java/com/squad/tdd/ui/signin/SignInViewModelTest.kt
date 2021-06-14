@@ -6,7 +6,7 @@ import com.squad.tdd.MainCoroutineRule
 import com.squad.tdd.data.GoogleVerify
 import com.squad.tdd.data.Result
 import com.squad.tdd.data.UserInfo
-import com.squad.tdd.usecases.GoogleVerifyUseCase
+import com.squad.tdd.usecases.GoogleVerifyUseCaseImpl
 import com.squad.tdd.utils.InstantExecutorExtension
 import com.squad.tdd.utils.getOrAwaitValue
 import com.squad.tdd.utils.shouldBeEqualTo
@@ -31,7 +31,7 @@ internal class SignInViewModelTest {
     var rule = MainCoroutineRule()
 
     lateinit var viewModel: SignInViewModel
-    private val googleVerifyUseCase = mockk<GoogleVerifyUseCase>()
+    private val googleVerifyUseCase = mockk<GoogleVerifyUseCaseImpl>()
     private val userInfo = UserInfo("idToken", "name", "email", "avatar")
 
     @BeforeEach
