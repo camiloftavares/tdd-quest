@@ -2,7 +2,9 @@ package com.squad.tdd.di
 
 import android.app.Activity
 import android.content.Context
+import androidx.activity.result.ActivityResultRegistry
 import androidx.annotation.VisibleForTesting
+import androidx.fragment.app.FragmentActivity
 import com.squad.tdd.api.ApiServiceImpl
 import com.squad.tdd.helpers.PermissionManager
 import com.squad.tdd.helpers.PermissionManagerImpl
@@ -34,8 +36,8 @@ object ServiceLocator {
         return userPreference ?: UserPreferenceImp(context)
     }
 
-    fun provideSignInHelper(): SignInHelper {
-        return signInHelper ?: SignInHelperImpl()
+    fun provideSignInHelper(activity: FragmentActivity): SignInHelper {
+        return signInHelper ?: SignInHelperImpl(activity)
     }
 
     fun provideGoogleVerifyUseCase(context: Context): GoogleVerifyUseCase {
@@ -47,10 +49,10 @@ object ServiceLocator {
     }
 
 }
-    fun Activity.requirePermissionManager(): PermissionManager {
-        return if (this is PermissionManagerActivity)
-            this.requirePermissionManager()
-        else
-            ServiceLocator.permissionManager!!
-    }
+fun Activity.requirePermissionManager(): PermissionManager {
+    return if (this is PermissionManagerActivity)
+        this.requirePermissionManager()
+    else
+        ServiceLocator.permissionManager!!
+}
 

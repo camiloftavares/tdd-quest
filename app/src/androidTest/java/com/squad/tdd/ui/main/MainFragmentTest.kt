@@ -6,22 +6,21 @@ import com.squad.tdd.R
 import com.squad.tdd.di.ServiceLocator
 import com.squad.tdd.helpers.SignInHelper
 import com.squad.tdd.preferences.UserPreference
-import com.squad.tdd.ui.main.MainFragmentDirections.Companion.actionRequireSignin
-import io.mockk.every
+import com.squad.tdd.utils.FakeUserPreference
 import io.mockk.mockk
-import io.mockk.verify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.lang.Exception
 
 @ExperimentalCoroutinesApi
 @RunWith(AndroidJUnit4::class)
 class MainFragmentTest {
     private val signInHelper = mockk<SignInHelper>(relaxed = true)
     private val navHostController = mockk<NavController>(relaxed = true)
-    private val userPreference =  mockk<UserPreference>(relaxed = true)
+    private val userPreference = FakeUserPreference()
 
     @Before
     fun setUp() {
@@ -32,7 +31,7 @@ class MainFragmentTest {
     @Test
     fun shouldGoToSignInFragmentIfUserIsNotLogged() {
         mainScreen {
-            userIsNotLogged(signInHelper)
+            userIsNotLogged(signInHelper, userPreference)
             launchMainScreen(navHostController)
             shouldNavigateToSign(navHostController)
         }
@@ -41,16 +40,16 @@ class MainFragmentTest {
     @Test
     fun shouldKeepOnMainFragmentIfUserIsLogged() {
         mainScreen {
-            userIsLogged(signInHelper)
+            userIsLogged(signInHelper, userPreference)
             launchMainScreen(navHostController)
             shouldNotNavigateToSign(navHostController)
         }
     }
 
     @Test
-    fun shouldShowUserInfoFromViewModelWhenIsLogged() = runBlockingTest {
+    fun shouldShowUserInfoFromViewModelWhenIsLogged() {
         mainScreen {
-            loggedUserInfo(userPreference)
+            userIsLogged(signInHelper, userPreference)
             launchMainScreen(navHostController)
             matchAvatar(R.drawable.ic_avatar)
             matchUserInfo(expectedUserInfo)

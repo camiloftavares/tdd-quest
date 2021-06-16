@@ -6,24 +6,24 @@ import com.squad.tdd.data.UserInfo
 import com.squad.tdd.helpers.SignInHelper
 import com.squad.tdd.preferences.UserPreference
 import com.squad.tdd.utils.BaseTestRobot
+import com.squad.tdd.utils.FakeUserPreference
 import io.mockk.every
 import io.mockk.verify
-import kotlinx.coroutines.flow.flowOf
+import java.lang.Exception
 
 class MainScreenRobot: BaseTestRobot() {
 
     val expectedUserInfo = UserInfo("idToken", "Caadsamilo", "camilo@gmail.com")
 
-    fun userIsLogged(signInHelper: SignInHelper) {
+    fun userIsLogged(signInHelper: SignInHelper, userPreference: FakeUserPreference) {
         every { signInHelper.userIsLogged() } returns true
+        userPreference.isUserLogged = true
+        userPreference.userInfo = expectedUserInfo
     }
 
-    fun userIsNotLogged(signInHelper: SignInHelper) {
+    fun userIsNotLogged(signInHelper: SignInHelper, userPreference: FakeUserPreference) {
         every { signInHelper.userIsLogged() } returns false
-    }
-
-    fun loggedUserInfo(userPreference: UserPreference) {
-        every { userPreference.getUserInfo() } returns flowOf(expectedUserInfo)
+        userPreference.isUserLogged = false
     }
 
     fun launchMainScreen(navHostController: NavController) {

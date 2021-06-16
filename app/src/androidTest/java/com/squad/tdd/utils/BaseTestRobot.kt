@@ -2,6 +2,7 @@ package com.squad.tdd.utils
 
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.testing.launchFragmentInContainer
+import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
 import androidx.test.core.app.launchActivity
@@ -47,7 +48,7 @@ open class BaseTestRobot {
                     }
                 }
             }
-        }
+        }.moveToState(Lifecycle.State.RESUMED)
     }
 
     fun launchMainActivity() {

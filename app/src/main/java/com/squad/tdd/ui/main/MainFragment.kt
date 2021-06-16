@@ -33,12 +33,13 @@ class MainFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel.getUserInfoMethod().observe(viewLifecycleOwner) {
-            binding.userInfo = it
-        }
-        signInHelper = ServiceLocator.provideSignInHelper()
+        signInHelper = ServiceLocator.provideSignInHelper(requireActivity())
         if (!signInHelper.userIsLogged()) {
             findNavController().navigate(MainFragmentDirections.actionRequireSignin())
+        } else {
+            viewModel.getUserInfoMethod().observe(viewLifecycleOwner) {
+                binding.userInfo = it
+            }
         }
     }
 }

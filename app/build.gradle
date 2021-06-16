@@ -18,6 +18,8 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField "String", "GOOGLE_OAUTH_CLIENT_ID", googleOAuthClientId
     }
 
     buildTypes {
@@ -88,6 +90,8 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.1'
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.0"
     implementation "androidx.datastore:datastore-preferences:1.0.0-beta01"
+    implementation "androidx.lifecycle:lifecycle-common-java8:2.3.1"
+    implementation "com.google.android.gms:play-services-auth:19.0.0"
 
     //Test dependencies
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
