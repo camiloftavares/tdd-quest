@@ -15,6 +15,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.Rule
@@ -41,16 +42,10 @@ internal class SignInViewModelTest {
 
     @Nested
     inner class VerifyGoogleUsingFlow {
-        private val channel = Channel<Result<GoogleVerify>>()
-        private val flow = channel.consumeAsFlow()
-
-
         @Test
         fun `should return success`() = runBlockingTest {
             val successResult = Result.Success(GoogleVerify("200"))
-
-            coEvery { googleVerifyUseCase.verifyGoogleCoroutine(userInfo) } returns flow
-            launch { channel.send(successResult) }
+            coEvery { googleVerifyUseCase.verifyGoogleCoroutine(userInfo) } returns flowOf(successResult)
 
             val verifyGoogleCoroutine = viewModel.verifyGoogleCoroutine(userInfo).getOrAwaitValue()
 
@@ -61,8 +56,7 @@ internal class SignInViewModelTest {
         fun `should return error`() = runBlockingTest {
             val errorResult = Result.ApiError("400")
 
-            coEvery { googleVerifyUseCase.verifyGoogleCoroutine(userInfo) } returns flow
-            launch { channel.send(errorResult) }
+            coEvery { googleVerifyUseCase.verifyGoogleCoroutine(userInfo) } returns flowOf(errorResult)
 
             val verifyGoogleCoroutine = viewModel.verifyGoogleCoroutine(userInfo).getOrAwaitValue()
 
@@ -73,8 +67,7 @@ internal class SignInViewModelTest {
         fun `should return loading`() = runBlockingTest {
             val loadingResult = Result.Loading
 
-            coEvery { googleVerifyUseCase.verifyGoogleCoroutine(userInfo) } returns flow
-            launch { channel.send(loadingResult) }
+            coEvery { googleVerifyUseCase.verifyGoogleCoroutine(userInfo) } returns flowOf(loadingResult)
 
             val verifyGoogleCoroutine = viewModel.verifyGoogleCoroutine(userInfo).getOrAwaitValue()
             val returned = viewModel.verifyGoogleCoroutine(userInfo)

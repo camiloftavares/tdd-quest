@@ -10,6 +10,9 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.squad.tdd.AuthApplication
@@ -20,6 +23,8 @@ import com.squad.tdd.di.requirePermissionManager
 import com.squad.tdd.helpers.PermissionManager
 import com.squad.tdd.helpers.SignInHelper
 import kotlinx.android.synthetic.main.sign_in_fragment.view.*
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 
 
 class SignInFragment : Fragment() {
@@ -42,24 +47,22 @@ class SignInFragment : Fragment() {
         return inflater.inflate(R.layout.sign_in_fragment, container, false)
     }
 
-    val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-        .requestIdToken(BuildConfig.GOOGLE_OAUTH_CLIENT_ID)
-        .requestEmail()
-        .build()
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        val loggedAccount = GoogleSignIn.getLastSignedInAccount(requireContext())
-        if (loggedAccount != null) {
-            GoogleSignIn.getClient(requireActivity(), gso).signOut()
-        }
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         permissionManager = requireActivity().requirePermissionManager()
         signInHelper = ServiceLocator.provideSignInHelper(requireActivity())
-        lifecycle.addObserver(signInHelper as LifecycleObserver)
+
+        lifecycleScope.launch {
+            signInHelper.signInResult().collect { userInfo ->
+                viewModel.verifyGoogleCoroutine(userInfo).observe(
+                    this@SignInFragment.viewLifecycleOwner,
+                    {
+                        if (it.isApiSuccess) {
+                            findNavController().navigate(SignInFragmentDirections.actionMainScreen())
+                        }
+                    })
+            }
+        }
 
         view.sign_in_btn.setOnClickListener { onSignInButtonClick() }
     }
@@ -69,15 +72,9 @@ class SignInFragment : Fragment() {
             rationaleTextId = R.string.permission_rationale_default_text,
             onPermissionGranted = {
                 signInHelper.showSignInIntent()
-//                    findNavController().navigate(SignInFragmentDirections.actionMainScreen())
             },
             onPermissionDenied = {
             }
         )
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        Log.e("error", data.toString())
     }
 }

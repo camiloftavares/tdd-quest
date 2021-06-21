@@ -1,45 +1,50 @@
 package com.squad.tdd.helpers
 
-import android.content.IntentSender.SendIntentException
 import android.util.Log
-import androidx.activity.result.IntentSenderRequest
-import androidx.activity.result.contract.ActivityResultContracts.StartIntentSenderForResult
-import androidx.core.app.ActivityCompat.startIntentSenderForResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.DefaultLifecycleObserver
-import androidx.lifecycle.LifecycleOwner
-import com.google.android.gms.auth.api.identity.GetSignInIntentRequest
-import com.google.android.gms.auth.api.identity.Identity
+import androidx.lifecycle.*
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.squad.tdd.BuildConfig
+import com.squad.tdd.data.UserInfo
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.runBlocking
 
 
-class SignInHelperImpl(private val activity: FragmentActivity): SignInHelper, DefaultLifecycleObserver {
-    val loginResultHandler = activity.registerForActivityResult(StartIntentSenderForResult()) { result ->
-            Log.d("fasd", "${result.resultCode}")
+class SignInHelperImpl(private val activity: FragmentActivity): SignInHelper {
+
+    val channel = Channel<UserInfo>()
+
+    private val loginResultHandler = activity.registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        runBlocking {
+
+        Log.d("fasd", "${result.data}")
+        }
+
     }
 
-    override fun onCreate(owner: LifecycleOwner) {
-        super.onCreate(owner)
-    }
+    private val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+        .requestIdToken(BuildConfig.GOOGLE_OAUTH_CLIENT_ID)
+        .requestEmail()
+        .build()
+
+    private val googleClient = GoogleSignIn.getClient(activity, gso)
+
 
     override fun showSignInIntent() {
-        val request = GetSignInIntentRequest.builder()
-            .setServerClientId(BuildConfig.GOOGLE_OAUTH_CLIENT_ID)
-            .build()
-        Identity.getSignInClient(activity)
-            .getSignInIntent(request)
-            .addOnSuccessListener { result ->
-                try {
-                    startIntentSenderForResult(activity, result.intentSender, 1, null, 0,0,0,null)
-                } catch (e: SendIntentException) {
-                    Log.e("error", e.toString())
-                }
-            }
-            .addOnFailureListener { e: Exception? ->
-                Log.e("error", e.toString())
-            }
+        loginResultHandler.launch(googleClient.signInIntent)
+    }
+
+    override fun signInResult(): Flow<UserInfo> {
+        return flowOf()
+    }
+
+    override fun logout() {
+        googleClient.signOut()
     }
 
     override fun userIsLogged(): Boolean {

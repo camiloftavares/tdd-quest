@@ -4,7 +4,7 @@ import com.squad.tdd.helpers.PermissionManager
 
 class FakePermissionManager: PermissionManager {
 
-    var isPermissionDenied: Boolean = false
+    var isPermissionGranted: Boolean = false
 
     override fun requestPermission(
         requestedPermissions: String,
@@ -24,10 +24,10 @@ class FakePermissionManager: PermissionManager {
         onPermissionDenied: () -> Unit,
         rationaleTextId: Int
     ) {
-        if (isPermissionDenied) {
-            onPermissionDenied()
-        } else {
+        if (isPermissionGranted) {
             onPermissionGranted()
+        } else {
+            onPermissionDenied()
         }
     }
 }

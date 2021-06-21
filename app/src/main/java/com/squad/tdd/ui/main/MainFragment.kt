@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.squad.tdd.AuthApplication
 import com.squad.tdd.databinding.MainFragmentBinding
 import com.squad.tdd.di.ServiceLocator
@@ -29,6 +30,13 @@ class MainFragment : Fragment() {
                               savedInstanceState: Bundle?): View {
         binding = MainFragmentBinding.inflate(inflater, container, false)
         return binding.root
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (signInHelper.userIsLogged()) {
+            signInHelper.logout()
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

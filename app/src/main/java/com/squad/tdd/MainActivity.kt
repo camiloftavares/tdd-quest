@@ -48,13 +48,4 @@ class MainActivity : AppCompatActivity(), PermissionManagerActivity {
     override fun requirePermissionManager(): PermissionManager {
         return PermissionManagerImpl(this, ::launchPermissionRequest)
     }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        Log.e("error", data.toString())
-        val completedTask = GoogleSignIn.getSignedInAccountFromIntent(data)
-        completedTask.getResult(ApiException::class.java)
-
-        completedTask.result?.email
-    }
 }

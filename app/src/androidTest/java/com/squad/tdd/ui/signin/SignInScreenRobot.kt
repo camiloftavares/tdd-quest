@@ -2,6 +2,7 @@ package com.squad.tdd.ui.signin
 
 import androidx.navigation.NavController
 import com.squad.tdd.R
+import com.squad.tdd.helpers.SignInHelper
 import com.squad.tdd.utils.BaseTestRobot
 import io.mockk.verify
 
@@ -19,6 +20,10 @@ class SignInScreenRobot: BaseTestRobot() {
         verify(exactly = 0) {
             navHostController.navigate(SignInFragmentDirections.actionMainScreen())
         }
+    }
+
+    fun shouldShowSignInIntent(signInHelper: SignInHelper) {
+        verify { signInHelper.showSignInIntent() }
     }
 
     fun shouldNavigateToMainScreen(navHostController: NavController) {

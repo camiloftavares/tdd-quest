@@ -13,7 +13,7 @@ import java.lang.Exception
 
 class MainScreenRobot: BaseTestRobot() {
 
-    val expectedUserInfo = UserInfo("idToken", "Caadsamilo", "camilo@gmail.com")
+    val expectedUserInfo = UserInfo("idToken", "Camilo", "camilo@gmail.com")
 
     fun userIsLogged(signInHelper: SignInHelper, userPreference: FakeUserPreference) {
         every { signInHelper.userIsLogged() } returns true

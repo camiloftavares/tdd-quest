@@ -48,7 +48,7 @@ open class BaseTestRobot {
                     }
                 }
             }
-        }.moveToState(Lifecycle.State.RESUMED)
+        }
     }
 
     fun launchMainActivity() {
